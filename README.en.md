@@ -10,9 +10,7 @@
 
 ```java
 
-## 构建GET请求:和okhttp类似
-```java
-
+// 构建GET请求:和okhttp类似
 RequestParams params = new RequestParams()
                 .put("userName","oscer")
                 .put("pwd","oschina");
@@ -43,8 +41,8 @@ Request request = new Request.Builder()
 ```
 
 ## POST JSON 请求构建:
-```java
 
+```java
 Request request = new Request.Builder()
                 .encode("UTF-8")
                 .method("POST")

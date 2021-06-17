@@ -1,37 +1,158 @@
 # HarmonyHttpClient
 
-#### 介绍
+#### Description
 鸿蒙上使用的Http网络框架，里面包含纯Java实现的HttpNet，类似okhttp使用，支持同步和异步两种请求方式；还有鸿蒙版retrofit，和Android版Retrofit相似的使用，解放双手搬优雅使用注解、自动解析json
 
-#### 软件架构
-软件架构说明
+
+#### 很遗憾，目前没能直接发布bintray，DevEco Studio上传bintray，gradle安装不通过，所以如果要使用，clone下拉，引入module即可
+
+#### HttpNet使用方式
+
+```java
+
+// 构建GET请求:和okhttp类似
+RequestParams params = new RequestParams()
+                .put("userName","oscer")
+                .put("pwd","oschina");
+
+Request request = new Request.Builder().encode("UTF-8")
+                .method("GET")
+                .timeout(13000)
+                .url("http://www.oschina.net")
+                .build();
+```
+
+## 构建POST请求:
+```java
+
+//请求参数
+RequestParams params = new RequestParams()
+                .put("userName","oscer")
+                .putFile("fileName","file")
+                .put("pwd","oschina");
+//请求对象
+Request request = new Request.Builder()
+                .encode("UTF-8")
+                .method("POST")
+                .params(params)
+                .timeout(13000)
+                .url("http://www.oschina.net")
+                .build();
+```
+
+## POST JSON 请求构建:
+
+```java
+Request request = new Request.Builder()
+                .encode("UTF-8")
+                .method("POST")
+                .content(new JsonContent("json")
+                .timeout(13000)
+                .url("http://www.oschina.net")
+                .build();
+
+```
+
+##执行请求:
+```java
+
+HttpNetClient client = new HttpNetClient();
+client.setProxy("192.168.1.1",80);//您也可以开启该客户端全局代理
+
+//执行异步请求
+client.newCall(request)
+                //如果采用上传文件方式，可以在这里开启上传进度监控
+                .intercept(new InterceptListener() {
+                    @Override
+                    public void onProgress(final int index, final long currentLength, final long totalLength) {
+                        Log.e("当前进度", "  --  " + ((float) currentLength / totalLength) * 100);
+                    }
+                })
+                .execute(new Callback() {
+                    @Override
+                    public void onResponse(Response response) {
+                        String body = response.getBody();
+                        InputStream is = response.toStream();//如果采用下载，可以在这里监听下载进度
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.e("onFailure", " onFailure " + e.getMessage());
+                    }
+                });
+
+// 也可以在线程中执行同步请求
+try {
+     Response response = client.newCall(request).execute();
+     String body = response.getBody();
+}catch (Exception e){
+      e.printStackTrace();
+}
+
+```
+
+#### Rerofit使用方式，网络实现基于前面的 HttpNetClient
+
+```java
+
+// 构建请求java接口，采用动态代理+注解实现
+public interface LoginService {
+
+    //普通POST
+    @Headers({"Cookie:cid=adcdefg;"})
+    @POST("api/users/login")
+    Call<BaseModel<User>> login(@Form("email") String email,
+                                @Form("pwd") String pwd,
+                                @Form("versionNum") int versionNum,
+                                @Form("dataFrom") int dataFrom);
+
+    // 上传文件
+    @POST("action/apiv2/user_edit_portrait")
+    @Headers("Cookie:xxx=hbbb;")
+    Call<String> postAvatar(@File("portrait") String file);
 
 
-#### 安装教程
+    //JSON POST
+    @POST("action/apiv2/user_edit_portrait")
+    @Headers("Cookie:xxx=hbbb;")
+    Call<String> postJson(@Json String file);
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+    //PATCH
+    @PATCH("mobile/user/{uid}/online")
+    Call<ResultBean<String>> handUp(@Path("uid") long uid);
+}
+```
 
-#### 使用说明
+##执行请求
+```java
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+public static final String API = "http://www.oschina.net/";
+public static Retrofit retrofit = new Retrofit();
 
-#### 参与贡献
+static {
+    retrofit.registerApi(API);//注册api
+}
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+//执行异步请求
+retrofit.from(LoginService.class)
+         .login("xxx@qq.com", "123456", 2, 2);
+         .withHeaders(Headers...)
+         .execute(new CallBack<BaseModel<User>>() {
+                 @Override
+                 public void onResponse(Response<BaseModel<User>> response) {
 
+                 }
 
-#### 特技
+                 @Override
+                 public void onFailure(Exception e) {
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+                 }
+ });
+
+//当然也支持同步请求
+
+Response<BaseModel<User>> response = retrofit.from(LoginService.class)
+         .login("xxx@qq.com", "123456", 2, 2);
+         .withHeaders(Headers...)
+         .execute();
+```
