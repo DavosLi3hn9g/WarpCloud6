@@ -8,9 +8,9 @@
 
 #### HttpNet使用方式
 
-```java
+## 构建GET请求:和okhttp类似
 
-// 构建GET请求:和okhttp类似
+```java
 RequestParams params = new RequestParams()
                 .put("userName","oscer")
                 .put("pwd","oschina");
