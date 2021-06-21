@@ -1,14 +1,14 @@
 # HarmonyHttpClient
 
-#### Description
+### 简介
 鸿蒙上使用的Http网络框架，里面包含纯Java实现的HttpNet，类似okhttp使用，支持同步和异步两种请求方式；还有鸿蒙版retrofit，和Android版Retrofit相似的使用，解放双手搬优雅使用注解、自动解析json
 
 
-#### 很遗憾，目前没能直接发布bintray，DevEco Studio上传bintray，gradle安装不通过，所以如果要使用，clone下拉，引入module即可
+### 很遗憾，目前没能直接发布bintray，DevEco Studio上传bintray，gradle安装不通过，所以如果要使用，clone下拉，引入module即可
 
-#### HttpNet使用方式
+## HttpNet使用方式
 
-## 构建GET请求:和okhttp类似
+#### 构建GET请求:和okhttp类似
 
 ```java
 RequestParams params = new RequestParams()
@@ -22,7 +22,7 @@ Request request = new Request.Builder().encode("UTF-8")
                 .build();
 ```
 
-## 构建POST请求:
+#### 构建POST请求:
 ```java
 
 //请求参数
@@ -40,7 +40,7 @@ Request request = new Request.Builder()
                 .build();
 ```
 
-## POST JSON 请求构建:
+#### POST JSON 请求构建:
 
 ```java
 Request request = new Request.Builder()
@@ -53,7 +53,7 @@ Request request = new Request.Builder()
 
 ```
 
-##执行请求:
+#### 执行请求:
 ```java
 
 HttpNetClient client = new HttpNetClient();
@@ -123,7 +123,8 @@ public interface LoginService {
 }
 ```
 
-##执行请求
+#### 执行请求
+
 ```java
 
 public static final String API = "http://www.oschina.net/";
