@@ -6,7 +6,7 @@
 
 ### 很遗憾，目前没能直接发布bintray，DevEco Studio上传bintray，gradle安装不通过，所以如果要使用，clone下来，引入module即可
 
-## HttpNet使用方式
+## HttpNet基本和进阶使用方式，可以进行合适的封装，简化请求逻辑
 
 #### 构建GET请求:和okhttp类似
 
@@ -55,13 +55,18 @@ Request request = new Request.Builder()
 
 #### 执行请求:
 ```java
-
+//构建Http客户端，这里可以进行全局static final
 HttpNetClient client = new HttpNetClient();
 client.setProxy("192.168.1.1",80);//您也可以开启该客户端全局代理
 client.addInterceptor(new Interceptor() {
+            /* 拦截器在执行请求前都会走到这一步，如果是同步的，就是当前线程，如果是异步，就是子线程
+            * 因此可以在这里动态添加全局Cookie或其它Header之类的
+            * 进阶使用：如果要求对所有接口Form表单进行全局加密，也可以在这里执行
+            */
             @Override
             public void intercept(Request request) {
                 Log.e("请求拦截器当前线程： " + Thread.currentThread().getName() + "  --  " + request.url());
+
             }
         });
 //执行异步请求
@@ -76,17 +81,17 @@ client.newCall(request)
                 .execute(new Callback() {
                     @Override
                     public void onResponse(Response response) {
-                        String body = response.getBody();
+                        String body = response.getBody();//getBody()和toStream()是互斥的
                         InputStream is = response.toStream();//如果采用下载，可以在这里监听下载进度
                     }
 
                     @Override
                     public void onFailure(Exception e) {
-                        Log.e("onFailure", " onFailure " + e.getMessage());
+                        Log.e("onFailure " + e.getMessage());
                     }
                 });
 
-// 也可以在线程中执行同步请求
+// 也可以在子线程中执行同步请求，如果有几个接口需要进行顺序请求，此方法最佳
 try {
      Response response = client.newCall(request).execute();
      String body = response.getBody();
@@ -96,15 +101,15 @@ try {
 
 ```
 
-#### Retrofit使用方式，网络实现基于前面的 HttpNetClient
+#### Retrofit使用方式，底层网络实现基于前面的 HttpNetClient，基于运行时注解添加请求配置，UI切换使用鸿蒙EventHandler
 
 ```java
 
-// 构建请求java接口，采用动态代理+注解实现
+// 构建请求java接口，采用动态代理+注解实现，服务器返回什么，Call<服务器返回json对应的Java bean>即可
 public interface LoginService {
 
-    //普通POST
-    @Headers({"Cookie:cid=adcdefg;"})
+    //普通POST，方法名添加请求方法注解POST、GET、DELETE、Header等，方法参数添加Form表单注解
+    @Headers({"Cookie:cid=adcdefg;"})//静态Header
     @POST("api/users/login")
     Call<BaseModel<User>> login(@Form("email") String email,
                                 @Form("pwd") String pwd,
@@ -113,17 +118,17 @@ public interface LoginService {
 
     // 上传文件
     @POST("action/apiv2/user_edit_portrait")
-    @Headers("Cookie:xxx=hbbb;")
+    @Headers("Cookie:xxx=hbbb;")//上传文件注解
     Call<String> postAvatar(@File("portrait") String file);
 
 
     //JSON POST
     @POST("action/apiv2/user_edit_portrait")
     @Headers("Cookie:xxx=hbbb;")
-    Call<String> postJson(@Json String file);
+    Call<String> postJson(@Json String file);//如果是Json POST，这么使用即可
 
     //PATCH
-    @PATCH("mobile/user/{uid}/online")
+    @PATCH("mobile/user/{uid}/online")//动态修改url路径
     Call<ResultBean<String>> handUp(@Path("uid") long uid);
 }
 ```
@@ -135,21 +140,24 @@ public interface LoginService {
 public static final String API = "http://www.oschina.net/";
 public static Retrofit retrofit = new Retrofit();
 retrofit.registerApi(API);//注册api
+
+//进阶使用，假设服务器返回来的json内容是aes加密的，那么可以添加转化器，拦截响应，aes解密后再返回，此方法一定在子线程执行，直接执行耗时操作
 retrofit.setConverterFactory(new ConverterFactory() {
             @Override
             public void convert(com.haibin.retrofit.Response response) {
-                response.setBodyString("{json}");//拦截响应数据，修改
+                response.setBodyString("{json}");//拦截响应数据，修改内容，如aes解密后再返回
                 Log.e("响应转换器当前线程： " + Thread.currentThread().getName());
             }
         });
-//执行异步请求
+
+//执行异步请求，异步请求可以直接在UI线程执行
 retrofit.from(LoginService.class)
          .login("xxx@qq.com", "123456", 2, 2);
-         .withHeaders(Headers...)
+         .withHeaders(Headers...)//动态添加某些Header
          .execute(new Callback<BaseModel<User>>() {
                  @Override
                  public void onResponse(Response<BaseModel<User>> response) {
-
+					  //回调是切换在UI线程，可直接更新界面，自动解析body，就是BaseModel<User>，需要判断body为不为null
                  }
 
                  @Override
@@ -158,10 +166,11 @@ retrofit.from(LoginService.class)
                  }
  });
 
-//当然也支持同步请求
+//当然也支持同步请求，顺序请求N个接口的最佳方法，解决逻辑嵌套，这里只能在子线程执行
 
 Response<BaseModel<User>> response = retrofit.from(LoginService.class)
          .login("xxx@qq.com", "123456", 2, 2);
          .withHeaders(Headers...)
          .execute();
+
 ```
