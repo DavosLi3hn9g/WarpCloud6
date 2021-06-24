@@ -7,3 +7,7 @@ dependencies {
 
 sourceCompatibility = "8"
 targetCompatibility = "8"
+
+ohos {
+compileSdkVersion = 5
+}

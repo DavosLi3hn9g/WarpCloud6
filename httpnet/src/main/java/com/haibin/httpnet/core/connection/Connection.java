@@ -102,7 +102,11 @@ public abstract class Connection {
                 patch();
                 break;
         }
-        mInputStream = mUrlConnection.getInputStream();
+        try{
+            mInputStream = mUrlConnection.getInputStream();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     abstract void connect(URLConnection connection, String method) throws IOException;

@@ -32,7 +32,7 @@ public class MainAbilitySlice extends AbilitySlice {
         Request request = new Request.Builder().encode("UTF-8")
                 .method("GET")
                 .timeout(13000)
-                .url("https://www.oschina.net")
+                .url("https://onecode-app-dev.digitalhainan.com.cn/natural/person/properties")
                 .build();
 
         HttpNetClient client = new HttpNetClient();

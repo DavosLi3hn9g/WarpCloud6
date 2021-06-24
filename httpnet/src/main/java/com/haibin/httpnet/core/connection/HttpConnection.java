@@ -92,6 +92,9 @@ public class HttpConnection extends Connection {
 
     @Override
     void onResponse(Callback callBack) throws IOException {
+        if(mInputStream == null){
+            mInputStream = mHttpUrlConnection.getErrorStream();
+        }
         callBack.onResponse(
                 new Response(mHttpUrlConnection.getResponseCode(),
                         mInputStream,

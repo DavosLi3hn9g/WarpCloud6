@@ -2,12 +2,12 @@
 apply plugin: 'com.huawei.ohos.app'
 
 ohos {
-    compileSdkVersion 4
+    compileSdkVersion 5
     defaultConfig {
-        compatibleSdkVersion 3
+        compatibleSdkVersion 4
     }
 }
-	
+
 buildscript {
     repositories {
         maven {
@@ -16,12 +16,13 @@ buildscript {
         maven {
             url 'https://developer.huawei.com/repo/'
         }
-		jcenter()
+        jcenter()
     }
     dependencies {
-        classpath 'com.huawei.ohos:hap:2.4.0.1'
+        classpath 'com.huawei.ohos:hap:2.4.4.2'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+        classpath 'com.huawei.ohos:decctest:1.2.4.0'
     }
 }
 
@@ -33,6 +34,6 @@ allprojects {
         maven {
             url 'https://developer.huawei.com/repo/'
         }
-		jcenter()
+        jcenter()
     }
 }
