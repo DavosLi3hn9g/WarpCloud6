@@ -16,6 +16,7 @@
 package com.haibin.httpnet.core.call;
 
 import com.haibin.httpnet.HttpNetClient;
+import com.haibin.httpnet.Interceptor;
 import com.haibin.httpnet.builder.Request;
 import com.haibin.httpnet.core.Response;
 import com.haibin.httpnet.core.connection.Connection;
@@ -32,9 +33,11 @@ public class AsyncCall implements Runnable {
     private Callback mCallBack;
     private Request mRequest;
     private Connection mConnection;
+    private HttpNetClient mClient;
 
     AsyncCall(HttpNetClient client, Request request, Callback callBack, InterceptListener listener) {
         this.mCallBack = callBack;
+        this.mClient = client;
         this.mRequest = request;
         mConnection = request.url().startsWith("https") ?
                 new HttpsConnection(client, request, listener) :
@@ -43,10 +46,21 @@ public class AsyncCall implements Runnable {
 
     @Override
     public void run() {
+        intercept();
         mConnection.connect(mCallBack);
     }
 
+    private void intercept() {
+        if (mClient.interceptors().size() == 0) {
+            return;
+        }
+        for (Interceptor interceptor : mClient.interceptors()) {
+            interceptor.intercept(mRequest);
+        }
+    }
+
     public Response execute() throws IOException {
+        intercept();
         return mConnection.connect();
     }
 

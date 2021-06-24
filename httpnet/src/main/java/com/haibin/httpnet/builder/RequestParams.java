@@ -61,8 +61,9 @@ public final class RequestParams {
 
     public RequestParams putFile(String name, File file) {
         if (multiParams == null) multiParams = new IdentityHashMap<>();
-        if (!file.exists())
-            return this;//throw new IllegalArgumentException("request param file not find exception");
+        if (!file.exists()){
+            return this;
+        }
         multiParams.put(new Key(name), file);
         return this;
     }

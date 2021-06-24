@@ -24,6 +24,8 @@ import com.haibin.httpnet.core.connection.SSLManager;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.ssl.SSLSocketFactory;
 
@@ -32,8 +34,8 @@ import javax.net.ssl.SSLSocketFactory;
  */
 @SuppressWarnings("unused")
 public final class HttpNetClient {
-    private Dispatcher mDispatcher;
-
+    private final Dispatcher mDispatcher;
+    private final List<Interceptor> mInterceptors = new ArrayList<>();
     private Proxy mProxy;//为当前客户端开启全局代理
 
     private SSLManager mSslManager;
@@ -41,6 +43,17 @@ public final class HttpNetClient {
     public HttpNetClient() {
         mDispatcher = new Dispatcher();
         mSslManager = new SSLManager();
+    }
+
+    public List<Interceptor> interceptors() {
+        return mInterceptors;
+    }
+
+    public void addInterceptor(Interceptor interceptor) {
+        if (interceptor == null) {
+            throw new IllegalArgumentException("interceptor == null");
+        }
+        mInterceptors.add(interceptor);
     }
 
     public Call newCall(Request request) {

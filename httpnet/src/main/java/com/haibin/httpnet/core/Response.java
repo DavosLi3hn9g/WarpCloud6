@@ -58,19 +58,20 @@ public class Response {
      * @return 转为字符串
      */
     public String getBody() {
-        if (mBody == null) {
-            try {
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                int b;
-                while ((b = mInputStream.read()) != -1) {
-                    os.write(b);
-                }
-                mBody = new String(os.toByteArray(), mEncode);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                close();
+        if (mBody != null) {
+            return mBody;
+        }
+        try {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            int b;
+            while ((b = mInputStream.read()) != -1) {
+                os.write(b);
             }
+            mBody = new String(os.toByteArray(), mEncode);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            close();
         }
         return mBody;
     }

@@ -58,7 +58,12 @@ Request request = new Request.Builder()
 
 HttpNetClient client = new HttpNetClient();
 client.setProxy("192.168.1.1",80);//您也可以开启该客户端全局代理
-
+client.addInterceptor(new Interceptor() {
+            @Override
+            public void intercept(Request request) {
+                Log.e("请求拦截器当前线程： " + Thread.currentThread().getName() + "  --  " + request.url());
+            }
+        });
 //执行异步请求
 client.newCall(request)
                 //如果采用上传文件方式，可以在这里开启上传进度监控
@@ -91,7 +96,7 @@ try {
 
 ```
 
-#### Rerofit使用方式，网络实现基于前面的 HttpNetClient
+#### Retrofit使用方式，网络实现基于前面的 HttpNetClient
 
 ```java
 
@@ -129,16 +134,19 @@ public interface LoginService {
 
 public static final String API = "http://www.oschina.net/";
 public static Retrofit retrofit = new Retrofit();
-
-static {
-    retrofit.registerApi(API);//注册api
-}
-
+retrofit.registerApi(API);//注册api
+retrofit.setConverterFactory(new ConverterFactory() {
+            @Override
+            public void convert(com.haibin.retrofit.Response response) {
+                response.setBodyString("{json}");//拦截响应数据，修改
+                Log.e("响应转换器当前线程： " + Thread.currentThread().getName());
+            }
+        });
 //执行异步请求
 retrofit.from(LoginService.class)
          .login("xxx@qq.com", "123456", 2, 2);
          .withHeaders(Headers...)
-         .execute(new CallBack<BaseModel<User>>() {
+         .execute(new Callback<BaseModel<User>>() {
                  @Override
                  public void onResponse(Response<BaseModel<User>> response) {
 

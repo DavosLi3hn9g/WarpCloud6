@@ -17,12 +17,17 @@ package com.haibin.retrofit;
 
 
 import com.haibin.httpnet.HttpNetClient;
+import com.haibin.httpnet.Interceptor;
+import com.haibin.retrofit.factory.ConverterFactory;
 import com.haibin.retrofit.factory.MainThreadExecutor;
 import com.haibin.retrofit.factory.MethodFactory;
+import com.haibin.retrofit.net.Convert;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 动态代理对象
@@ -30,7 +35,8 @@ import java.lang.reflect.Proxy;
 @SuppressWarnings("ALL")
 public class Retrofit {
     private HttpNetClient mClient;
-    private MainThreadExecutor mMainExecutor;
+    private final MainThreadExecutor mMainExecutor;
+    private ConverterFactory mConverterFactory ;
     private String mBaseUrl;
 
     public MainThreadExecutor getMainExecutor() {
@@ -40,6 +46,22 @@ public class Retrofit {
     public Retrofit() {
         mClient = new HttpNetClient();
         mMainExecutor = new MainThreadExecutor();
+    }
+
+    public ConverterFactory converterFactory() {
+        return mConverterFactory;
+    }
+
+    /**
+     * 添加响应转换器
+     * @param convert convert
+     */
+    public void setConverterFactory(ConverterFactory convert) {
+        mConverterFactory = convert;
+    }
+
+    public void addInterceptor(Interceptor interceptor) {
+        mClient.addInterceptor(interceptor);
     }
 
     public <T> T from(final Class<T> service) {
